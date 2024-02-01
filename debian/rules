@@ -1,0 +1,13 @@
+#!/usr/bin/make -f
+
+LDFLAGS+=-Wl,--as-needed
+PREFIX=/usr
+
+%:
+	dh $@ -Smakefile
+
+override_dh_auto_build:
+	dh_auto_build -- PREFIX=${PREFIX}
+
+override_dh_auto_install:
+	dh_auto_install -- PREFIX=${PREFIX} install

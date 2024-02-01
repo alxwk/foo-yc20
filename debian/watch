@@ -1,0 +1,4 @@
+version=3
+
+http://code.google.com/p/foo-yc20/downloads/list \
+http://foo-yc20.googlecode.com/files/foo-yc20-(.*).tar.bz2

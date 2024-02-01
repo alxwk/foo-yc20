@@ -1,0 +1,49 @@
+Description: Pass LDFLAGS to the linker.
+ Remove -m{tune,arch}=native flag (bug#649461).
+Author: Alessio Treglia <alessio@debian.org>
+Forwarded: no
+---
+ Makefile |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+--- foo-yc20.orig/Makefile
++++ foo-yc20/Makefile
+@@ -17,7 +17,7 @@ ifeq ($(CFLAGS),)
+ ifeq ($(shell uname), Darwin)
+ CFLAGS=-O3 -ffast-math -ftree-vectorize -arch ppc -arch i386 -arch x86_64
+ else
+-CFLAGS=-O3 -mtune=native -march=native -mfpmath=sse -ffast-math -ftree-vectorize 
++CFLAGS=-O2 -ffast-math -ftree-vectorize
+ endif
+ endif
+ 
+@@ -43,25 +43,25 @@ lv2: $(LV2_PLUGIN) $(LV2_UI)
+ OBJS_FOO_YC20=src/foo-yc20.o src/configuration.o src/yc20-jack.o src/main-gui.o src/foo-yc20-ui.o src/yc20-base-ui.o $(WIN32_RC)
+ 
+ foo-yc20: $(OBJS_FOO_YC20) $(OBJS_DSP_STANDALONE)
+-	$(CXX) $(OBJS_FOO_YC20) $(OBJS_DSP_STANDALONE) `pkg-config --libs gtk+-2.0` `pkg-config --libs jack` $(LDFLAGS_YC20) -o foo-yc20
++	$(CXX) $(LDFLAGS) $(OBJS_FOO_YC20) $(OBJS_DSP_STANDALONE) `pkg-config --libs gtk+-2.0` `pkg-config --libs jack` $(LDFLAGS_YC20) -o foo-yc20
+ 
+ ## CLI version
+ OBJS_FOO_YC20_CLI=src/foo-yc20.o src/configuration.o src/main-cli.o src/yc20-jack.o
+ 
+ foo-yc20-cli: $(OBJS_FOO_YC20_CLI) $(OBJS_DSP_STANDALONE)
+-	$(CXX) $(OBJS_FOO_YC20_CLI) $(OBJS_DSP_STANDALONE) $(LDFLAGS_YC20_CLI) `pkg-config --libs jack` -o foo-yc20-cli
++	$(CXX) $(LDFLAGS) $(OBJS_FOO_YC20_CLI) $(OBJS_DSP_STANDALONE) $(LDFLAGS_YC20_CLI) `pkg-config --libs jack` -o foo-yc20-cli
+ 
+ ## LV2 version
+ OBJS_LV2=src/lv2.o src/foo-yc20.o
+ 
+ $(LV2_PLUGIN): $(OBJS_LV2) $(OBJS_DSP_PLUGIN)
+-	$(CXX) $(OBJS_LV2) $(OBJS_DSP_PLUGIN) -fPIC -shared -o $(LV2_PLUGIN) $(LDFLAGS_YC20_LV2)
++	$(CXX) $(LDFLAGS) $(OBJS_LV2) $(OBJS_DSP_PLUGIN) -fPIC -shared -o $(LV2_PLUGIN) $(LDFLAGS_YC20_LV2)
+ 
+ ## LV2 UI
+ OBJS_LV2_UI=src/lv2-ui.o src/foo-yc20-ui2.o src/yc20-base-ui.o
+ 
+ $(LV2_UI): $(OBJS_LV2_UI)
+-	$(CXX) $(OBJS_LV2_UI) -fPIC -shared `pkg-config --libs gtk+-2.0` -o $(LV2_UI) $(LDFLAGS_YC20_LV2)
++	$(CXX) $(LDFLAGS) $(OBJS_LV2_UI) -fPIC -shared `pkg-config --libs gtk+-2.0` -o $(LV2_UI) $(LDFLAGS_YC20_LV2)
+ 
+ ## VSTi - only compiles for windows with MinGW32. 
+ ##        Note: Jack is used in compile flags to provide access to the ringbuffer.h. there

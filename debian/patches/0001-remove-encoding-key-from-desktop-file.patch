@@ -1,0 +1,22 @@
+From: Alessandro Ghedini <al3xbio@gmail.com>
+Date: Thu, 9 Dec 2010 15:13:38 +0100
+Subject: [PATCH] remove encoding key from desktop file
+
+Fix Lintian desktop-entry-contains-encoding-key error (I).
+---
+ foo-yc20.desktop.in |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/foo-yc20.desktop.in b/foo-yc20.desktop.in
+index 683d5f4..aa83374 100644
+--- a/foo-yc20.desktop.in
++++ b/foo-yc20.desktop.in
+@@ -2,7 +2,6 @@
+ Name=Foo YC20
+ GenericName=YC20
+ Version=1.0
+-Encoding=UTF-8
+ Comment=Organ synthesizer
+ Exec=foo-yc20
+ Icon=%PREFIX%/share/foo-yc20/graphics/icon.png
+-- 
