@@ -1,2 +1,0 @@
-?package(foo-yc20):needs="X11" section="Applications/Sound"\
-  title="foo-yc20" command="/usr/bin/foo-yc20"

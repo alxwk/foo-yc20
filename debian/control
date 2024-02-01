@@ -1,19 +1,19 @@
 Source: foo-yc20
 Section: sound
 Priority: optional
-Maintainer: Debian Multimedia Maintainers <pkg-multimedia-maintainers@lists.alioth.debian.org>
+Maintainer: Debian Multimedia Maintainers <debian-multimedia@lists.debian.org>
 Uploaders:
  Adrian Knoth <adi@drcomp.erfurt.thur.de>,
  Alessio Treglia <alessio@debian.org>
 Build-Depends:
- debhelper (>= 9),
+ debhelper-compat (= 13),
  faust,
  libgtk2.0-dev,
  libjack-dev,
  lv2-dev
-Homepage: http://code.google.com/p/foo-yc20/
-Vcs-Git: git://git.debian.org/git/pkg-multimedia/foo-yc20.git
-Vcs-Browser: http://git.debian.org/?p=pkg-multimedia/foo-yc20.git
+Homepage: https://foo-yc20.codeforcode.com/
+Vcs-Git: https://salsa.debian.org/multimedia-team/foo-yc20.git
+Vcs-Browser: https://salsa.debian.org/multimedia-team/foo-yc20
 Standards-Version: 3.9.5
 
 Package: foo-yc20

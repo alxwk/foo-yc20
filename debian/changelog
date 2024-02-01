@@ -1,3 +1,25 @@
+foo-yc20 (1.3.0-7) unstable; urgency=medium
+
+  * Team upload (Closes: #980807)
+
+  [Olivier Humbert]
+  * d/watch: update repo + version 4.
+  * d/control: update homepage link.
+  * d/copyright: http -> https.
+
+  [Ondřej Nový]
+  * d/compat: use debhelper-compat instead of debian/compat .
+  * d/control: set Vcs-* to salsa.debian.org .
+  * d/copyright: use https protocol in Format field.
+
+  [Felipe Sateler]
+  * d/control: change maintainer address to debian-multimedia@l.d.o
+
+  [Pino Toscano]
+  * Drop menu file, since foo-yc20 already provides a .desktop file.
+
+ -- Alessandro Ghedini <ghedo@debian.org>  Sat, 01 Mar 2014 12:28:47 +0100
+
 foo-yc20 (1.3.0-6) unstable; urgency=medium
 
   * Team upload
