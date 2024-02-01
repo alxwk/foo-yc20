@@ -1,5 +1,5 @@
 PREFIX=/usr/local
-VERSION=
+VERSION=1.3.0
 
 OBJS_NODEPS=src/lv2.o src/foo-yc20.o src/configuration.o
 OBJS_JACK=src/yc20-jack.o src/main-cli.o
