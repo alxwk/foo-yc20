@@ -1,49 +1,55 @@
-Description: Pass LDFLAGS to the linker.
- Remove -m{tune,arch}=native flag (bug#649461).
-Author: Alessio Treglia <alessio@debian.org>
+From: Alessio Treglia <alessio@debian.org>
+Date: Fri, 2 Feb 2024 14:39:04 +0500
+Subject: Pass LDFLAGS to the linker.
+
+Forwarded: no
+
+Remove -m{tune,arch}=native flag (bug#649461).
 Forwarded: no
 ---
- Makefile |   10 +++++-----
+ Makefile | 10 +++++-----
  1 file changed, 5 insertions(+), 5 deletions(-)
 
---- foo-yc20.orig/Makefile
-+++ foo-yc20/Makefile
-@@ -17,7 +17,7 @@ ifeq ($(CFLAGS),)
- ifeq ($(shell uname), Darwin)
+diff --git a/Makefile b/Makefile
+index ddd74c0..44a7832 100644
+--- a/Makefile
++++ b/Makefile
+@@ -29,7 +29,7 @@ ifeq ($(CFLAGS),)
+ ifeq ($(OS), Darwin)
  CFLAGS=-O3 -ffast-math -ftree-vectorize -arch ppc -arch i386 -arch x86_64
  else
--CFLAGS=-O3 -mtune=native -march=native -mfpmath=sse -ffast-math -ftree-vectorize 
+-CFLAGS=-O3 -march=nocona -mfpmath=sse -ffast-math -ftree-vectorize
 +CFLAGS=-O2 -ffast-math -ftree-vectorize
  endif
  endif
  
-@@ -43,25 +43,25 @@ lv2: $(LV2_PLUGIN) $(LV2_UI)
- OBJS_FOO_YC20=src/foo-yc20.o src/configuration.o src/yc20-jack.o src/main-gui.o src/foo-yc20-ui.o src/yc20-base-ui.o $(WIN32_RC)
+@@ -65,25 +65,25 @@ lv2: $(LV2_PLUGIN) $(LV2_UI)
+ OBJS_FOO_YC20=src/foo-yc20.o src/configuration.o src/yc20-jack.o src/main-gui.o src/foo-yc20-ui.o src/yc20-base-ui.o src/graphics.o src/yc20-precalc.o $(WIN32_RC)
  
  foo-yc20: $(OBJS_FOO_YC20) $(OBJS_DSP_STANDALONE)
--	$(CXX) $(OBJS_FOO_YC20) $(OBJS_DSP_STANDALONE) `pkg-config --libs gtk+-2.0` `pkg-config --libs jack` $(LDFLAGS_YC20) -o foo-yc20
-+	$(CXX) $(LDFLAGS) $(OBJS_FOO_YC20) $(OBJS_DSP_STANDALONE) `pkg-config --libs gtk+-2.0` `pkg-config --libs jack` $(LDFLAGS_YC20) -o foo-yc20
+-	$(CXX11) $(OBJS_FOO_YC20) $(OBJS_DSP_STANDALONE) `$(PKG_CONFIG) --libs gtk+-2.0` `$(PKG_CONFIG) --libs jack` $(LDFLAGS_YC20) -o foo-yc20
++	$(CXX11) $(LDFLAGS) $(OBJS_FOO_YC20) $(OBJS_DSP_STANDALONE) `$(PKG_CONFIG) --libs gtk+-2.0` `$(PKG_CONFIG) --libs jack` $(LDFLAGS_YC20) -o foo-yc20
  
  ## CLI version
- OBJS_FOO_YC20_CLI=src/foo-yc20.o src/configuration.o src/main-cli.o src/yc20-jack.o
+ OBJS_FOO_YC20_CLI=src/foo-yc20.o src/configuration.o src/main-cli.o src/yc20-jack.o src/yc20-precalc.o
  
  foo-yc20-cli: $(OBJS_FOO_YC20_CLI) $(OBJS_DSP_STANDALONE)
--	$(CXX) $(OBJS_FOO_YC20_CLI) $(OBJS_DSP_STANDALONE) $(LDFLAGS_YC20_CLI) `pkg-config --libs jack` -o foo-yc20-cli
-+	$(CXX) $(LDFLAGS) $(OBJS_FOO_YC20_CLI) $(OBJS_DSP_STANDALONE) $(LDFLAGS_YC20_CLI) `pkg-config --libs jack` -o foo-yc20-cli
+-	$(CXX11) $(OBJS_FOO_YC20_CLI) $(OBJS_DSP_STANDALONE) $(LDFLAGS_YC20_CLI) `$(PKG_CONFIG) --libs jack` -o foo-yc20-cli
++	$(CXX11) $(LDFLAGS) $(OBJS_FOO_YC20_CLI) $(OBJS_DSP_STANDALONE) $(LDFLAGS_YC20_CLI) `$(PKG_CONFIG) --libs jack` -o foo-yc20-cli
  
  ## LV2 version
- OBJS_LV2=src/lv2.o src/foo-yc20.o
+ OBJS_LV2=src/lv2.o src/foo-yc20.o src/yc20-precalc.o
  
  $(LV2_PLUGIN): $(OBJS_LV2) $(OBJS_DSP_PLUGIN)
--	$(CXX) $(OBJS_LV2) $(OBJS_DSP_PLUGIN) -fPIC -shared -o $(LV2_PLUGIN) $(LDFLAGS_YC20_LV2)
-+	$(CXX) $(LDFLAGS) $(OBJS_LV2) $(OBJS_DSP_PLUGIN) -fPIC -shared -o $(LV2_PLUGIN) $(LDFLAGS_YC20_LV2)
+-	$(CXX11) $(OBJS_LV2) $(OBJS_DSP_PLUGIN) -fPIC -shared -o $(LV2_PLUGIN) $(LDFLAGS_YC20_LV2)
++	$(CXX11) $(LDFLAGS) $(OBJS_LV2) $(OBJS_DSP_PLUGIN) -fPIC -shared -o $(LV2_PLUGIN) $(LDFLAGS_YC20_LV2)
  
  ## LV2 UI
- OBJS_LV2_UI=src/lv2-ui.o src/foo-yc20-ui2.o src/yc20-base-ui.o
+ OBJS_LV2_UI=src/lv2-ui.o src/foo-yc20-ui2.o src/yc20-base-ui.o src/graphics.o
  
  $(LV2_UI): $(OBJS_LV2_UI)
--	$(CXX) $(OBJS_LV2_UI) -fPIC -shared `pkg-config --libs gtk+-2.0` -o $(LV2_UI) $(LDFLAGS_YC20_LV2)
-+	$(CXX) $(LDFLAGS) $(OBJS_LV2_UI) -fPIC -shared `pkg-config --libs gtk+-2.0` -o $(LV2_UI) $(LDFLAGS_YC20_LV2)
+-	$(CXX11) $(OBJS_LV2_UI) -fPIC -shared `$(PKG_CONFIG) --libs gtk+-2.0` -o $(LV2_UI) $(LDFLAGS_YC20_LV2)
++	$(CXX11) $(LDFLAGS) $(OBJS_LV2_UI) -fPIC -shared `$(PKG_CONFIG) --libs gtk+-2.0` -o $(LV2_UI) $(LDFLAGS_YC20_LV2)
  
  ## VSTi - only compiles for windows with MinGW32. 
  ##        Note: Jack is used in compile flags to provide access to the ringbuffer.h. there

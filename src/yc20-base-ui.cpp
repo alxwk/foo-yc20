@@ -1,29 +1,40 @@
 /*
     Foo-YC20 Base UI
-    Copyright (C) 2010  Sampo Savolainen <v2@iki.fi>
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+Copyright 2010-2011 Sampo Savolainen (v2@iki.fi). All rights reserved.
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+   1. Redistributions of source code must retain the above copyright notice, 
+      this list of conditions and the following disclaimer.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   2. Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+
+   3. Neither the name Foo YC20, its author, nor the names of its contributors
+      may be used to endorse or promote products derived from this software
+      without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY SAMPO SAVOLAINEN ``AS IS'' AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+SHALL SAMPO SAVOLAINEN OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHERIN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISEDOF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <yc20-base-ui.h>
 #include <foo-yc20-os.h>
+#include <graphics.h>
 
-#include <string.h>
-
-#ifdef __WIN32__
-
-#include <windows.h>
+#include <cstdlib>
+#include <ctime>
+#include <cstring>
 
 struct pointer_t {
 	unsigned char *ptr;
@@ -44,17 +55,13 @@ cairo_status_t read_from_pointer(void *closure, unsigned char *data, unsigned in
 		len = ptr->length - ptr->at;
 	}
 
-	memcpy(data, ptr->ptr + ptr->at, len);
+	std::memcpy(data, ptr->ptr + ptr->at, len);
 
 	ptr->at += len;
 
 	return CAIRO_STATUS_SUCCESS;
 }
 
-// For foo-yc20.exe, use 0)
-// For the VSTi, createEffectInstance() will set this to the value from the dll initialization
-HINSTANCE cairoResourceInstance = 0;
-
 namespace Wdgt
 {
 	bool check_cairo_png(cairo_surface_t *s)
@@ -66,55 +73,21 @@ namespace Wdgt
 
 	}
 
-	inline cairo_surface_t * load_png(std::string file)
+	inline cairo_surface_t * load_png(unsigned char *ptr, unsigned int length, std::string name)
 	{       
-		HRSRC hRes = FindResource(cairoResourceInstance, file.c_str(), RT_RCDATA); 
-		HGLOBAL hMem = LoadResource(cairoResourceInstance, hRes); 
-
 		struct pointer_t png_resource;
-		png_resource.ptr    = (unsigned char *)LockResource(hMem); 
-		png_resource.length = SizeofResource(cairoResourceInstance, hRes);
+		png_resource.ptr    = ptr;
+		png_resource.length = length;
 		png_resource.at     = 0;
 
 		cairo_surface_t *ret = cairo_image_surface_create_from_png_stream (read_from_pointer, &png_resource);
 		if (!check_cairo_png(ret)) {
-			std::cerr << "Foo-YC20: could not open resource '" << file << "'" << std::endl;
+			std::cerr << "Foo-YC20: could not load png '" << name << "'" << std::endl;
 		}
 		return ret;
 	}
 
 }
-
-#else
-namespace Wdgt
-{
-
-	bool check_cairo_png(cairo_surface_t *s)
-	{
-		cairo_status_t _stat = cairo_surface_status(s);
-		return !(_stat == CAIRO_STATUS_NO_MEMORY ||
-				_stat == CAIRO_STATUS_FILE_NOT_FOUND ||
-				_stat == CAIRO_STATUS_READ_ERROR);
-
-	}
-
-	inline cairo_surface_t * load_png(std::string file)
-	{       
-		std::string installed_file = INSTALL_LOCATION YC20_PNG_DIR + file;
-		std::string local_file = YC20_PNG_DIR + file;
-
-		cairo_surface_t *ret = cairo_image_surface_create_from_png (installed_file.c_str());
-		if (!check_cairo_png(ret)) {
-			ret = cairo_image_surface_create_from_png (local_file.c_str());
-		}
-
-		if (!check_cairo_png(ret)) {
-			std::cerr << "Foo-YC20: could not open " << installed_file << " or a local copy in " << YC20_PNG_DIR << std::endl;
-		}
-		return ret;
-	}
-}
-#endif
 
 
 YC20BaseUI::YC20BaseUI()
@@ -122,8 +95,43 @@ YC20BaseUI::YC20BaseUI()
 	, hoverWdgt(0)
 	, dragWdgt(0)
 	, buttonPressWdgt(0)
+	, showing_license(false)
+	, current_background(0)
 {
-	image_background = Wdgt::load_png("background.png");
+
+#define load(name) Wdgt::load_png(graphics_##name##_png, graphics_##name##_png_len, STR(name))
+
+	image_background[0] = load(background_red);
+	image_background[1] = load(background_black);
+	image_background[2] = load(background_white);
+	image_background[3] = load(background_blue);
+
+	image_license = load(license);
+
+	drawbarWhiteImages[0] = load(white_0);
+	drawbarWhiteImages[1] = load(white_1);
+	drawbarWhiteImages[2] = load(white_2);
+	drawbarWhiteImages[3] = load(white_3);
+
+	drawbarBlackImages[0] = load(black_0);
+	drawbarBlackImages[1] = load(black_1);
+	drawbarBlackImages[2] = load(black_2);
+	drawbarBlackImages[3] = load(black_3);
+
+	drawbarGreenImages[0] = load(green_0);
+	drawbarGreenImages[1] = load(green_1);
+	drawbarGreenImages[2] = load(green_2);
+	drawbarGreenImages[3] = load(green_3);
+
+	potentiometerImage = load(potentiometer);
+#undef load
+/*
+	image_background[0] = Wdgt::load_png("background-red.png");
+	image_background[1] = Wdgt::load_png("background-black.png");
+	image_background[2] = Wdgt::load_png("background-white.png");
+	image_background[3] = Wdgt::load_png("background-blue.png");
+
+	image_license = Wdgt::load_png("license.png");
 
 	drawbarWhiteImages[0] = Wdgt::load_png("white_0.png");
 	drawbarWhiteImages[1] = Wdgt::load_png("white_1.png");
@@ -141,7 +149,7 @@ YC20BaseUI::YC20BaseUI()
 	drawbarGreenImages[3] = Wdgt::load_png("green_3.png");
 
 	potentiometerImage = Wdgt::load_png("potentiometer.png");
-
+*/
 	// Widgets
 	float pitch_x = 6.0;
 	float pitch_x_long = 10.0;
@@ -316,6 +324,10 @@ YC20BaseUI::identify_wdgt(double x, double y)
 void
 YC20BaseUI::mouse_movement(double x, double y)
 {
+	if (showing_license) {
+		return;
+	}
+
 	x /= ui_scale;
 	y /= ui_scale;
 
@@ -353,6 +365,13 @@ YC20BaseUI::mouse_movement(double x, double y)
 void
 YC20BaseUI::button_pressed(double x, double y)
 {
+	if (showing_license) {
+		showing_license = false;
+		current_background = (current_background + 1) % 4;
+		draw(-1, -1, -1, -1, false);
+		return;
+	}
+
 	x /= ui_scale;
 	y /= ui_scale;
 
@@ -360,6 +379,10 @@ YC20BaseUI::button_pressed(double x, double y)
 	Wdgt::Draggable *obj = dynamic_cast<Wdgt::Draggable *>(buttonPressWdgt);
 
 	if (obj == 0) {
+		if (x >= 1200 && y >= 155) {
+			showing_license = true;
+			draw(-1, -1, -1, -1, false);
+		}
 		return;
 	}
 
@@ -376,6 +399,10 @@ YC20BaseUI::button_pressed(double x, double y)
 void
 YC20BaseUI::button_released(double x, double y)
 {
+	if (showing_license) {
+		return;
+	}
+
 	x /= ui_scale;
 	y /= ui_scale;
 
@@ -435,13 +462,18 @@ YC20BaseUI::draw(double x, double y, double width, double height, bool scale)
 
 	cairo_scale(cr, ui_scale, ui_scale);
 
+	if (showing_license) {
+		cairo_set_source_surface(cr, image_license, 0.0, 0.0);
+		cairo_paint(cr);
+		return_cairo_surface(cr);
+		return;
+	}
+
 	// double-buffer
 	cairo_push_group_with_content(cr, CAIRO_CONTENT_COLOR);
 
 	// background
-	cairo_set_source_surface(cr, image_background, 0.0, 0.0);
-	// e4080a
-	//cairo_set_source_rgb(cr, 228.0/255.0, 8.0/255.0, 10.0/255.0);
+	cairo_set_source_surface(cr, image_background[current_background], 0.0, 0.0);
 	cairo_paint(cr);
 
 	// wdgts
@@ -487,9 +519,10 @@ YC20BaseUI::~YC20BaseUI()
         }
 	wdgts.clear();
 
-	cairo_surface_destroy(image_background);
+	cairo_surface_destroy(image_license);
 
 	for (int i = 0; i < 4; i++) {
+		cairo_surface_destroy(image_background[i]);
 		cairo_surface_destroy(drawbarBlackImages[i]);
 		cairo_surface_destroy(drawbarWhiteImages[i]);
 		cairo_surface_destroy(drawbarGreenImages[i]);

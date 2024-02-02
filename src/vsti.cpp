@@ -1,22 +1,31 @@
 /*
     Foo-YC20 VSTi plugin
-    Copyright (C) 2010  Sampo Savolainen <v2@iki.fi>
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+Copyright 2010-2011 Sampo Savolainen (v2@iki.fi). All rights reserved.
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+   1. Redistributions of source code must retain the above copyright notice, 
+      this list of conditions and the following disclaimer.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   2. Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
 
-    VST2 SDK Interfaces by (c)1996-1999 Steinberg Soft und Hardware GmbH, All Rights Reserved
+   3. Neither the name Foo YC20, its author, nor the names of its contributors
+      may be used to endorse or promote products derived from this software
+      without specific prior written permission.
 
+THIS SOFTWARE IS PROVIDED BY SAMPO SAVOLAINEN ``AS IS'' AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+SHALL SAMPO SAVOLAINEN OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHERIN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISEDOF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <iostream>
@@ -27,16 +36,19 @@
 #include <audioeffectx.cpp>
 
 #include <foo-yc20.h>
+#include <yc20-precalc.h>
 #include <yc20-base-ui.h>
 
 #ifdef __WIN32__
 #include <cairo-win32.h>
+#elif __linux__
+/* LINUX, NOP */
 #else /* __APPLE__*/
 #include <Carbon/Carbon.h>
 #include <cairo-quartz.h>
 #endif
 
-// Note: This is not a dependency to jack! We just use the ringbuffer implementation for VST -> UI communication
+// Note: This is not a runtime dependency to jack! We just use the ringbuffer implementation for VST -> UI communication
 #include <jack/ringbuffer.h>
 
 #define NUM_PARAMS 23
@@ -54,7 +66,7 @@ class FooYC20VSTi : public AudioEffectX
 		bool getEffectName	(char *);
 
 		// Vendor version in hex: 0xaabbcc where aa = major, bb = minor, cc = micro
-		VstInt32 getVendorVersion () { return 0x010300; };
+		VstInt32 getVendorVersion () { return 0x010400; };
 
 		void setProgramName	(char *);
 		void getProgramName	(char *);
@@ -85,9 +97,9 @@ class FooYC20VSTi : public AudioEffectX
 
 
 #ifdef __WIN32__ /*{{{*/
+
 LRESULT CALLBACK yc20WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
-extern HINSTANCE cairoResourceInstance;
 extern HINSTANCE hInstance;
 
 const char yc20WindowClassName[] = "FooYC20WindowClass";
@@ -1040,10 +1052,6 @@ static OSStatus MouseEventHandler(EventHandlerCallRef nextHandler, EventRef even
 
 AudioEffect *createEffectInstance(audioMasterCallback audioMaster)
 { 
-#ifdef __WIN32__
-	// Propagate the HINSTANCE set by vstgui to th HINSTANCE used in yc20-base-ui.cpp
-	cairoResourceInstance = hInstance;
-#endif
 	return new FooYC20VSTi (audioMaster, 1, NUM_PARAMS);
 }
 
@@ -1140,15 +1148,22 @@ FooYC20VSTi::FooYC20VSTi  (audioMasterCallback callback, VstInt32 programs, VstI
 
 	yc20 = new YC20Processor();
 
+	float sampleRate = getSampleRate();
+
 	dsp *tmp = createDSP();
-        tmp->init(getSampleRate());
+	tmp->init(sampleRate);
 
 	yc20->setDSP(tmp);
+	getUserData(tmp)->osc = yc20_precalc_oscillators(sampleRate);
 
 #ifdef VERBOSE
 	std::cerr << "Creating the editor..." << std::endl;
 #endif
+
+#ifndef __linux__ /* no UI for linux VST, yet */
 	setEditor(new YC20AEffEditor(this));
+#endif
+
 #ifdef VERBOSE
 	std::cout << "...done: " << editor << std::endl;
 #endif
@@ -1159,14 +1174,33 @@ FooYC20VSTi::setSampleRate (float sampleRate)
 {
 	AudioEffectX::setSampleRate(sampleRate);
 
-	dsp *tmp = yc20->getDSP();
-	delete tmp;
+	dsp *old = yc20->getDSP();
 	
+	dsp *tmp = createDSP();
+	tmp->init(sampleRate);
 
-	tmp = createDSP();
-        tmp->init(sampleRate);
+	float oldValues[NUM_PARAMS];
+	for (int i = 0; i < NUM_PARAMS; i++) {
+		Control *c = yc20->getControl(label_for_parameter[i]);
+		oldValues[i] = *c->getZone();
+	}
+	float oldKeys[61];
+	for (int i = 0; i < 61; i++) {
+		oldKeys[i] = yc20->getKey(i);
+	}
+
+	yc20_destroy_oscillators(getUserData(old)->osc);
+	delete old;
 
 	yc20->setDSP(tmp);
+	getUserData(tmp)->osc = yc20_precalc_oscillators(sampleRate);
+	for (int i = 0; i < NUM_PARAMS; i++) {
+		Control *c = yc20->getControl(label_for_parameter[i]);
+		*c->getZone() = oldValues[i];
+	}
+	for (int i = 0; i < 61; i++) {
+		yc20->setKey(i, oldKeys[i]);
+	}
 }
 
 bool FooYC20VSTi::getOutputProperties(VstInt32 index, VstPinProperties* properties)
@@ -1186,6 +1220,8 @@ FooYC20VSTi::~FooYC20VSTi()
 		delete editor;
 		editor = 0;
 	}
+
+	yc20_destroy_oscillators(getUserData(yc20->getDSP())->osc);
 	delete yc20;
 	yc20 = 0;
 }
@@ -1260,9 +1296,11 @@ FooYC20VSTi::setParameter	(VstInt32 index, float value)
 
 	*c->getZone() = value;
 
+#ifndef __linux__
 	if (editor && didChange) {
 		((YC20AEffEditor *)editor)->queueChange(index, value);
 	}
+#endif
 }
 
 float

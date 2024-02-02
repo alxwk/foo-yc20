@@ -1,1 +1,8 @@
 .pc/
+src/*.o
+
+web/bower_components
+web/node_modules
+web/css
+web/target
+
