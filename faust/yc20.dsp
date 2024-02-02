@@ -37,7 +37,7 @@ import ("mixer.dsp");
 import ("percussion.dsp");
 
 
-pitch_control = hslider("pitch", 0.0, -1.0, 1.0, 0.05);
+pitch_control = hslider("pitch", 0.0, -0.35, 1.15, 0.05);
 
 oscillator_bias = (1 + vibrato + pitch_control * 0.03);
 

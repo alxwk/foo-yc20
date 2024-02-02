@@ -33,7 +33,7 @@
 		lv2:name "MIDI in";
 	],
 	[ a lv2:ControlPort, lv2:InputPort; lv2:index 3;  lv2:symbol "pitch";       lv2:name "pitch"; 
-		lv2:minimum -1.0; lv2:maximum 1.0; lv2:default 0.0; ],
+		lv2:minimum -0.35; lv2:maximum 1.15; lv2:default 0.0; ],
 	[ a lv2:ControlPort, lv2:InputPort; lv2:index 4;  lv2:symbol "volume";      lv2:name "volume"; 
 		lv2:minimum  0.0; lv2:maximum 1.0; lv2:default 0.1; ],
 	[ a lv2:ControlPort, lv2:InputPort; lv2:index 5;  lv2:symbol "bass_volume"; lv2:name "bass volume"; 

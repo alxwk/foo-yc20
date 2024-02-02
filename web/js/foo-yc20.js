@@ -41,8 +41,8 @@ var foo_yc20 = (function(foo_yc20) {
       "pitch": {
         type: "potentiometer",
         dspAddr: "pitch",
-        min: -1.0,
-        max: 1.0
+        min: -0.35,
+        max: 1.15
       },
       "volume": {
         type: "potentiometer",

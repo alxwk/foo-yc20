@@ -2393,7 +2393,7 @@ class mydsp : public dsp {
 		ui_interface->addVerticalSlider("2' ii", &fVslider8, 1.0f, 0.0f, 1.0f, 0.25f);
 		ui_interface->closeBox();
 		ui_interface->addHorizontalSlider("percussive", &fHslider6, 1.0f, 0.0f, 1.0f, 0.25f);
-		ui_interface->addHorizontalSlider("pitch", &fHslider3, 0.0f, -1.0f, 1.0f, 0.0500000007f);
+		ui_interface->addHorizontalSlider("pitch", &fHslider3, 0.0f, -0.35f, 1.15f, 0.0500000007f);
 		ui_interface->addHorizontalSlider("realism", &fHslider2, 0.0f, 0.0f, 1.0f, 0.25f);
 		ui_interface->addHorizontalSlider("volume", &fHslider7, 0.5f, 0.0f, 1.0f, 0.00999999978f);
 		ui_interface->closeBox();
