@@ -159,7 +159,7 @@ YC20BaseUI::YC20BaseUI()
 	float y = 15.0;
 
 	// Pitch, volume & bass volume
-	Wdgt::Potentiometer *pitch  = new Wdgt::Potentiometer(x, y, -1.0, 1.0, potentiometerImage);
+	Wdgt::Potentiometer *pitch  = new Wdgt::Potentiometer(x, y, -0.35, 1.15, potentiometerImage);
 	pitch->setName("pitch");
 	x += 72.0 + pitch_x_longest;
 
