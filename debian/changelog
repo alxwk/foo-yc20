@@ -1,7 +1,7 @@
-foo-yc20 (1.4.0~git20240203-1) UNRELEASED; urgency=medium
+foo-yc20 (1.4.0~alxwk.git20240203-1) UNRELEASED; urgency=medium
 
   * Non-maintainer upload.
-  * Local catch-up tp upstream
+  * Local catch-up to upstream
 
  -- alxwk <awjd15+gh@gmail.com>  Sat Feb  3 20:42:33 +05 2024
 
