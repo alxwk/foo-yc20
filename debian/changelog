@@ -1,3 +1,10 @@
+foo-yc20 (1.4.0~alxwk.git20240207-1) UNRELEASED; urgency=medium
+
+  * Non-maintainer upload.
+  * More historically accurate position for "Pitch" wheel
+
+ -- alxwk <awjd15+gh@gmail.com>  Wed Feb  7 20:54:54 +05 2024
+
 foo-yc20 (1.4.0~alxwk.git20240203-1) UNRELEASED; urgency=medium
 
   * Non-maintainer upload.
